@@ -32,44 +32,41 @@ def read_trim_atlas(context, trimtype):
             xmax = max(xmax, vert[uv_layer].uv.x)
             ymin = min(ymin, vert[uv_layer].uv.y)
             ymax = max(ymax, vert[uv_layer].uv.y)
-        
+
         horizontal = False
         vertical = False
         if xmin <= 0.01 and xmax >= 0.99:
             horizontal = True
         if ymin <= 0.01 and ymax >= 0.99:
             vertical = True
-        
+
         facerect = trim()
         facerect.xmin = xmin
         facerect.ymin = ymin
         facerect.xmax = xmax
         facerect.ymax = ymax
-        
+
         #print(trimtype)
-        
+
         if (horizontal or vertical) and trimtype == "trim":
             print("adding trim")
             atlas.append(facerect)
-        
+
         if trimtype == "cap" and not horizontal and not vertical:
             print("adding cap")
             #print(facerect.xmin)
             #print(facerect.xmax)
-            atlas.append(facerect) 
-        
+            atlas.append(facerect)
+
         if horizontal:
             atlas.sort(key=getymin, reverse=True)
         if vertical:
             atlas.sort(key=getxmin, reverse=False)
         if trimtype == "cap":
             atlas.sort(key=getxmin, reverse=False)
-            
-
-    #print(atlas)
 
     return atlas
-    
+
 def uv_trim(context):
     #get atlas first
     atlas = read_trim_atlas(context, "trim")
@@ -79,7 +76,6 @@ def uv_trim(context):
 
     if context.scene.trim_index > ( len(atlas) - 1.0 ):
         context.scene.trim_index = 0.0
-
 
     #MAKE DUPLICATE AND SPLIT EDGES
     #CREATE WORKING DUPLICATE!
@@ -100,20 +96,19 @@ def uv_trim(context):
             faces.append(face)
 
     bmesh.update_edit_mesh(obj.data)
-    
+
     #mark seams on selection edge:
     bpy.ops.mesh.region_to_loop()
     bpy.ops.mesh.mark_seam(clear=False)
-    
+
     bpy.ops.mesh.select_all(action='DESELECT')
     bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='EDGE')
-    
+
     #don't do angle
     #angle = bpy.context.object.data.auto_smooth_angle
     #bpy.ops.mesh.edges_select_sharp(sharpness=angle)
     #bpy.ops.mesh.mark_seam(clear=False)
     #bpy.ops.mesh.select_all(action='DESELECT')
-    
 
     bpy.ops.mesh.mark_seam(clear=False)
     bpy.ops.mesh.select_all(action='DESELECT')
@@ -125,17 +120,13 @@ def uv_trim(context):
     bpy.ops.mesh.edge_split(type='EDGE')
     bpy.ops.mesh.select_all(action='DESELECT')
 
-
-
     #select all faces to be hotspotted again:
 
     for face in faces:
         face.select = True
 
-
     trimsheet = list()
     #for face in atlas:
-        
 
     obj = bpy.context.view_layer.objects.active
     bm = bmesh.from_edit_mesh(obj.data)
@@ -147,14 +138,12 @@ def uv_trim(context):
         if face.select:
             HSfaces.append(face)
 
-
     is_rect = DUV_Utils.square_fit(context)
-
 
     xmin, xmax = HSfaces[0].loops[0][uv_layer].uv.x, HSfaces[0].loops[0][uv_layer].uv.x
     ymin, ymax = HSfaces[0].loops[0][uv_layer].uv.y, HSfaces[0].loops[0][uv_layer].uv.y
 
-    for face in HSfaces: 
+    for face in HSfaces:
         for vert in face.loops:
             xmin = min(xmin, vert[uv_layer].uv.x)
             xmax = max(xmax, vert[uv_layer].uv.x)
@@ -168,17 +157,15 @@ def uv_trim(context):
     horizontal = True
     if width <= height:
         horizontal = False
-        
+
     #V1: assume horizontal layout
     if atlas[0].xmin <= 0.01 and atlas[0].xmax >= 0.99:
-        print("HORIZONTAL MODE")
-        
         #flip it!
         if horizontal == False:
             #flip width and height values:
             width = ymax - ymin
             height = xmax - xmin
-            #rotate 
+            #rotate
             for face in HSfaces:
                 for loop in face.loops:
                     tempx = loop[uv_layer].uv.x
@@ -196,7 +183,7 @@ def uv_trim(context):
                 loop[uv_layer].uv.y *= scale
                 #move
                 loop[uv_layer].uv.y += atlas[trimindex].ymin
-                
+
         #map to bounds:
         #first, get current bounds:
         bmin = 0
@@ -205,14 +192,14 @@ def uv_trim(context):
             for loop in face.loops:
                 if loop[uv_layer].uv.x > bmax:
                     bmax = loop[uv_layer].uv.x
-        
+
         #shift randomly
         random_shift = random.random()
         if context.scene.duv_uvtrim_randomshift == True:
             for face in HSfaces:
                 for loop in face.loops:
                     loop[uv_layer].uv.x += random_shift
-        
+
         #else now scale to bounds:
         elif context.scene.duv_uvtrim_bounds == True:
             for face in HSfaces:
@@ -222,18 +209,14 @@ def uv_trim(context):
                     loop[uv_layer].uv.x += context.scene.duv_uvtrim_min
 
     if atlas[0].ymin <= 0.01 and atlas[0].ymax >= 0.99:
-        print("VERTICAL MODE")
         #flip it!
         if not horizontal:
-            print("this one is wrong")
             width = ymax - ymin
             height = xmax - xmin
-        
+
         if horizontal:
-            
-            print("vertical mode and horizontal")
-            
-            #rotate 
+
+            #rotate
             for face in HSfaces:
                 for loop in face.loops:
                     tempx = loop[uv_layer].uv.x
@@ -245,16 +228,16 @@ def uv_trim(context):
         scale = (atlas[trimindex].xmax-atlas[trimindex].xmin)/height
 
         #scale the uvs to sheet and move:
-        
+
         for face in HSfaces:
             for loop in face.loops:
                 loop[uv_layer].uv.x *= scale
                 loop[uv_layer].uv.y *= scale
                 #loop[uv_layer].uv.y /= (xmax-xmin)
-                
+
                 #move
                 loop[uv_layer].uv.x += atlas[trimindex].xmin
-                
+
         #map to bounds:
         #first, get current bounds:
         bmin = 0
@@ -270,7 +253,7 @@ def uv_trim(context):
             for face in HSfaces:
                 for loop in face.loops:
                     loop[uv_layer].uv.y += random_shift
-        
+
         #else now scale to bounds:
         elif context.scene.duv_uvtrim_bounds == True:
             for face in HSfaces:
@@ -279,9 +262,6 @@ def uv_trim(context):
                     loop[uv_layer].uv.y *= (context.scene.duv_uvtrim_max - context.scene.duv_uvtrim_min)
                     loop[uv_layer].uv.y += context.scene.duv_uvtrim_min
 
-
-
-
     bmesh.update_edit_mesh(obj.data)
     bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='FACE')
 
@@ -289,7 +269,7 @@ def uv_trim(context):
     #transfer UV maps back to original mesh
 
     obj = bpy.context.view_layer.objects.active
-    bm = bmesh.from_edit_mesh(obj.data) 
+    bm = bmesh.from_edit_mesh(obj.data)
     uv_layer = bm.loops.layers.uv.verify()
     uv_backup = list();
     #print("new UV:")
@@ -302,7 +282,7 @@ def uv_trim(context):
             backupface.append(backupuv)
             #print(backupuv)
         uv_backup.append(backupface)
-        
+
     #now apply to original mesh
     bpy.ops.object.editmode_toggle()
     object_temporary.select_set(False)
@@ -310,7 +290,7 @@ def uv_trim(context):
     bpy.ops.object.editmode_toggle()
 
     obj = object_original
-    bm = bmesh.from_edit_mesh(obj.data) 
+    bm = bmesh.from_edit_mesh(obj.data)
     uv_layer = bm.loops.layers.uv.verify()
     #uv_backup = list();
     #print("new UV:")
@@ -320,7 +300,7 @@ def uv_trim(context):
             vert[uv_layer].uv.y = backupuv[1]
     bmesh.update_edit_mesh(obj.data)
 
-    bpy.ops.object.editmode_toggle() 
+    bpy.ops.object.editmode_toggle()
 
     object_original.select_set(False)
     object_temporary.select_set(True)
@@ -329,16 +309,16 @@ def uv_trim(context):
     context.view_layer.objects.active=bpy.context.selected_objects[0]
 
     #toggle back to edit mode
-    bpy.ops.object.editmode_toggle() 
+    bpy.ops.object.editmode_toggle()
 
 class DREAMUV_OT_uv_trim(bpy.types.Operator):
     """Unwrap selection as tiling trim using the trim atlas as a guide"""
     bl_idname = "view3d.dreamuv_uvtrim"
     bl_label = "Trim"
     bl_options = {"UNDO"}
-    
+
     def execute(self, context):
-        
+
         #remember selected uv
         uv_index = bpy.context.view_layer.objects.active.data.uv_layers.active_index
         if context.scene.duv_trimcap_uv1 == True:
@@ -352,28 +332,27 @@ class DREAMUV_OT_uv_trim(bpy.types.Operator):
             uv_trim(context)
         #reset selected uv
         bpy.context.view_layer.objects.active.data.uv_layers.active_index = uv_index
-        
+
         if context.scene.duv_autoboxmaptrim == True:
             bpy.ops.view3d.dreamuv_uvboxmap()
-        
+
         return {'FINISHED'}
-        
-def uv_cap(context):  
+
+def uv_cap(context):
     #get atlas first
     atlas = read_trim_atlas(context, "cap")
     print("atlas:")
     print(atlas)
-    
+
     if context.scene.cap_index > ( len(atlas) - 1.0 ):
         context.scene.cap_index = 0.0
-    
+
     #check if horizontal or vertical, and make trimsheet
 
     #temp: assuming it's horizontal:
-    
+
     trimsheet = list()
     #for face in atlas:
-        
 
     obj = bpy.context.view_layer.objects.active
     bm = bmesh.from_edit_mesh(obj.data)
@@ -384,14 +363,14 @@ def uv_cap(context):
     for face in bm.faces:
         if face.select:
             HSfaces.append(face)
-   
+
     is_rect = DUV_Utils.square_fit(context)
 
     #FIT TO 0-1 range
     xmin, xmax = HSfaces[0].loops[0][uv_layer].uv.x, HSfaces[0].loops[0][uv_layer].uv.x
     ymin, ymax = HSfaces[0].loops[0][uv_layer].uv.y, HSfaces[0].loops[0][uv_layer].uv.y
-    
-    for face in HSfaces: 
+
+    for face in HSfaces:
         for vert in face.loops:
             xmin = min(xmin, vert[uv_layer].uv.x)
             xmax = max(xmax, vert[uv_layer].uv.x)
@@ -403,14 +382,14 @@ def uv_cap(context):
         xmin = .1
     if (ymax - ymin) == 0:
         ymin = .1
-    
-    trimindex = int(context.scene.cap_index)        
+
+    trimindex = int(context.scene.cap_index)
     print("move uv to this:")
     print(atlas[trimindex].xmin)
     print(atlas[trimindex].ymin)
     print(atlas[trimindex].xmax)
     print(atlas[trimindex].ymax)
-    
+
     for face in HSfaces:
         for loop in face.loops:
             loop[uv_layer].uv.x -= xmin
@@ -430,13 +409,12 @@ def uv_cap(context):
     bmesh.update_edit_mesh(obj.data)
     bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='FACE')
 
-
 class DREAMUV_OT_uv_cap(bpy.types.Operator):
     """Unwrap selection as single cap using the trim atlas as a guide"""
     bl_idname = "view3d.dreamuv_uvcap"
     bl_label = "Cap"
     bl_options = {"UNDO"}
-    
+
     def execute(self, context):
         #remember selected uv
         uv_index = bpy.context.view_layer.objects.active.data.uv_layers.active_index
@@ -451,13 +429,13 @@ class DREAMUV_OT_uv_cap(bpy.types.Operator):
             uv_cap(context)
         #reset selected uv
         bpy.context.view_layer.objects.active.data.uv_layers.active_index = uv_index
-        
+
         if context.scene.duv_autoboxmaptrim == True:
             bpy.ops.view3d.dreamuv_uvboxmap()
-        
+
         return {'FINISHED'}
 
-def uv_trimnext(self, context):  
+def uv_trimnext(self, context):
     atlas = read_trim_atlas(context, "trim")
     trimindex = int(context.scene.trim_index)
 
@@ -472,10 +450,10 @@ def uv_trimnext(self, context):
                 context.scene.trim_index = len(atlas) - 1
 
         trimindex = int(context.scene.trim_index)
-    
+
     if bpy.context.object.mode == 'OBJECT':
         return {'FINISHED'}
-               
+
     obj = bpy.context.view_layer.objects.active
     bm = bmesh.from_edit_mesh(obj.data)
     uv_layer = bm.loops.layers.uv.verify()
@@ -485,37 +463,30 @@ def uv_trimnext(self, context):
         if face.select:
             selected_faces.append(face)
 
-
     if len(selected_faces) == 0:
         return {'FINISHED'}
 
     #select linked uvs
     bpy.ops.mesh.select_linked(delimit={'UV'})
-    
 
     faces = list()
     #MAKE FACE LIST
     for face in bm.faces:
         if face.select:
             faces.append(face)
-            
-    
 
     xmin, xmax = faces[0].loops[0][uv_layer].uv.x, faces[0].loops[0][uv_layer].uv.x
     ymin, ymax = faces[0].loops[0][uv_layer].uv.y, faces[0].loops[0][uv_layer].uv.y
 
-    for face in faces: 
+    for face in faces:
         for vert in face.loops:
             xmin = min(xmin, vert[uv_layer].uv.x)
             xmax = max(xmax, vert[uv_layer].uv.x)
             ymin = min(ymin, vert[uv_layer].uv.y)
             ymax = max(ymax, vert[uv_layer].uv.y)
 
-    
-
     width = xmax - xmin
     height = ymax - ymin
-    
 
     #FIT TO 0-1 range
 
@@ -539,8 +510,6 @@ def uv_trimnext(self, context):
                 loop[uv_layer].uv.x /= width
                 loop[uv_layer].uv.y /= width
 
-    
-
     if atlas[0].xmin <= 0.01 and atlas[0].xmax >= 0.99:
         scale = (atlas[trimindex].ymax-atlas[trimindex].ymin)
         #scale the uvs to sheet and move:
@@ -550,7 +519,7 @@ def uv_trimnext(self, context):
                 loop[uv_layer].uv.y *= scale
                 #move
                 loop[uv_layer].uv.y += atlas[trimindex].ymin
-                
+
         #map to bounds:
         #first, get current bounds:
         bmin = 0
@@ -559,14 +528,14 @@ def uv_trimnext(self, context):
             for loop in face.loops:
                 if loop[uv_layer].uv.x > bmax:
                     bmax = loop[uv_layer].uv.x
-        
+
         #shift randomly
         random_shift = random.random()
         if context.scene.duv_uvtrim_randomshift == True:
             for face in faces:
                 for loop in face.loops:
                     loop[uv_layer].uv.x += random_shift
-        
+
         #else now scale to bounds:
         elif context.scene.duv_uvtrim_bounds == True:
             for face in faces:
@@ -574,7 +543,7 @@ def uv_trimnext(self, context):
                     loop[uv_layer].uv.x /= bmax
                     loop[uv_layer].uv.x *= (context.scene.duv_uvtrim_max - context.scene.duv_uvtrim_min)
                     loop[uv_layer].uv.x += context.scene.duv_uvtrim_min
-        
+
     if atlas[0].ymin <= 0.01 and atlas[0].ymax >= 0.99:
         scale = (atlas[trimindex].xmax-atlas[trimindex].xmin)
         #scale the uvs to sheet and move:
@@ -584,7 +553,7 @@ def uv_trimnext(self, context):
                 loop[uv_layer].uv.y *= scale
                 #move
                 loop[uv_layer].uv.x += atlas[trimindex].xmin
-                
+
         #map to bounds:
         #first, get current bounds:
         bmin = 0
@@ -593,14 +562,14 @@ def uv_trimnext(self, context):
             for loop in face.loops:
                 if loop[uv_layer].uv.y > bmax:
                     bmax = loop[uv_layer].uv.y
-        
+
         #shift randomly
         random_shift = random.random()
         if context.scene.duv_uvtrim_randomshift == True:
             for face in faces:
                 for loop in face.loops:
                     loop[uv_layer].uv.y += random_shift
-        
+
         #else now scale to bounds:
         elif context.scene.duv_uvtrim_bounds == True:
             for face in faces:
@@ -615,10 +584,9 @@ def uv_trimnext(self, context):
     #reselect original selected faces
     for face in selected_faces:
         face.select = True
-    
+
     bmesh.update_edit_mesh(obj.data)
     bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='FACE')
-
 
 class DREAMUV_OT_uv_trimnext(bpy.types.Operator):
     """Switch selected trim to next one on the atlas sheet"""
@@ -628,10 +596,9 @@ class DREAMUV_OT_uv_trimnext(bpy.types.Operator):
 
     reverse : bpy.props.BoolProperty()
     trimswitched = False
-    
+
     def execute(self, context):
-        
-        
+
         #remember selected uv
         uv_index = bpy.context.view_layer.objects.active.data.uv_layers.active_index
         if context.scene.duv_trimcap_uv1 == True:
@@ -649,10 +616,10 @@ class DREAMUV_OT_uv_trimnext(bpy.types.Operator):
 
         return {'FINISHED'}
 
-def uv_capnext(self, context): 
+def uv_capnext(self, context):
     atlas = read_trim_atlas(context, "cap")
     trimindex = int(context.scene.cap_index)
-    
+
     if self.trimswitched == False:
         if self.reverse == False:
             context.scene.cap_index += 1
@@ -664,19 +631,18 @@ def uv_capnext(self, context):
                 context.scene.cap_index = len(atlas) - 1
 
         trimindex = int(context.scene.cap_index)
-    
+
     if bpy.context.object.mode == 'OBJECT':
         return {'FINISHED'}
-    
+
     obj = bpy.context.view_layer.objects.active
     bm = bmesh.from_edit_mesh(obj.data)
     uv_layer = bm.loops.layers.uv.verify()
-    
+
     selected_faces = list()
     for face in bm.faces:
         if face.select:
             selected_faces.append(face)
-
 
     if len(selected_faces) == 0:
         return {'FINISHED'}
@@ -693,18 +659,15 @@ def uv_capnext(self, context):
     xmin, xmax = faces[0].loops[0][uv_layer].uv.x, faces[0].loops[0][uv_layer].uv.x
     ymin, ymax = faces[0].loops[0][uv_layer].uv.y, faces[0].loops[0][uv_layer].uv.y
 
-    for face in faces: 
+    for face in faces:
         for vert in face.loops:
             xmin = min(xmin, vert[uv_layer].uv.x)
             xmax = max(xmax, vert[uv_layer].uv.x)
             ymin = min(ymin, vert[uv_layer].uv.y)
             ymax = max(ymax, vert[uv_layer].uv.y)
 
-    
-
     width = xmax - xmin
     height = ymax - ymin
-    
 
     #FIT TO 0-1 range
 
@@ -721,12 +684,9 @@ def uv_capnext(self, context):
             loop[uv_layer].uv.x /= width
             loop[uv_layer].uv.y /= height
 
-    
-
     xscale = (atlas[trimindex].xmax-atlas[trimindex].xmin)
     yscale = (atlas[trimindex].ymax-atlas[trimindex].ymin)
-    
-    
+
     #scale the uvs to sheet and move:
     for face in faces:
         for loop in face.loops:
@@ -736,7 +696,6 @@ def uv_capnext(self, context):
             loop[uv_layer].uv.x += atlas[trimindex].xmin
             loop[uv_layer].uv.y += atlas[trimindex].ymin
 
-       
     bmesh.update_edit_mesh(obj.data)
     bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='FACE')
 
@@ -748,10 +707,9 @@ class DREAMUV_OT_uv_capnext(bpy.types.Operator):
 
     reverse : bpy.props.BoolProperty()
     trimswitched = False
-    
+
     def execute(self, context):
-    
-    
+
         #remember selected uv
         uv_index = bpy.context.view_layer.objects.active.data.uv_layers.active_index
         if context.scene.duv_trimcap_uv1 == True:
@@ -766,10 +724,8 @@ class DREAMUV_OT_uv_capnext(bpy.types.Operator):
             uv_capnext(self, context)
         #reset selected uv
         bpy.context.view_layer.objects.active.data.uv_layers.active_index = uv_index
-        
 
         return {'FINISHED'}
-
 
 class trim:
     xmin = float()
@@ -778,5 +734,3 @@ class trim:
     ymax = float()
     #rect = list()
     horizontal = bool()
-
-    

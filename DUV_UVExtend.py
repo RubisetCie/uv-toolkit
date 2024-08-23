@@ -9,7 +9,7 @@ class DREAMUV_OT_uv_extend(bpy.types.Operator):
     bl_label = "3D View UV Extend"
     bl_options = {"UNDO"}
 
-    def execute(self, context):  
+    def execute(self, context):
         mesh = bpy.context.object.data
         bm = bmesh.from_edit_mesh(mesh)
         bm.faces.ensure_lookup_table()
@@ -28,7 +28,6 @@ class DREAMUV_OT_uv_extend(bpy.types.Operator):
         if facecounter < 2:
             self.report({'INFO'}, "only one face selected, aborting")
             return {'FINISHED'}
-        
 
         #save active face!
         for l in bm.faces.active.loops:
@@ -45,10 +44,9 @@ class DREAMUV_OT_uv_extend(bpy.types.Operator):
 
         bpy.ops.uv.unwrap(method='CONFORMAL', margin=0.001)
 
-
         #find first 2 shared vertices
 
-        vert1 = None    
+        vert1 = None
         vert1uv0 = None
         vert1uv1 = None
         vert2 = None
@@ -63,7 +61,7 @@ class DREAMUV_OT_uv_extend(bpy.types.Operator):
                     vert1uv1 = l2[uv_layer].uv
         for l in face0:
             for l2 in face1:
-                if l.vert.index is not vert1:            
+                if l.vert.index is not vert1:
                     if l.vert.index == l2.vert.index and vert2 == None:
                         vert2 = l.vert.index
                         vert2uv0 = l[uv_layer].uv
@@ -95,7 +93,7 @@ class DREAMUV_OT_uv_extend(bpy.types.Operator):
             angle += TWOPI
 
         #move face0 to face1
-        xdist = vert1uv0.x - vert1uv1.x 
+        xdist = vert1uv0.x - vert1uv1.x
         ydist = vert1uv0.y - vert1uv1.y
 
         for l in face0:
@@ -117,20 +115,19 @@ class DREAMUV_OT_uv_extend(bpy.types.Operator):
             p1=0.01
         scaledelta = p2/p1
 
-
         ox=vert1uv0.x
         oy=vert1uv0.y
 
         #scale face0
-        for l in face0:    
+        for l in face0:
             l[uv_layer].uv.x -= ox
             l[uv_layer].uv.y -= oy
             l[uv_layer].uv.x *= scaledelta
             l[uv_layer].uv.y *= scaledelta
             l[uv_layer].uv.x += ox
             l[uv_layer].uv.y += oy
-            
-        #bm.to_mesh(me)           
+
+        #bm.to_mesh(me)
         bmesh.update_edit_mesh(mesh, loop_triangles=False, destructive=False)
 
         return {'FINISHED'}

@@ -41,7 +41,7 @@ class DREAMUV_OT_uv_move_to_edge(bpy.types.Operator):
                                 ymin = l[bm.loops.layers.uv.active].uv.y
                             elif l[bm.loops.layers.uv.active].uv.y > ymax:
                                 ymax = l[bm.loops.layers.uv.active].uv.y
-                                
+
         xdist = 0
         ydist = 0
 
@@ -53,7 +53,6 @@ class DREAMUV_OT_uv_move_to_edge(bpy.types.Operator):
             xdist = 1-xmax
         if self.direction == "left":
             xdist = -xmin
-
 
         for face in bm.faces:
                 if face.select:

@@ -4,7 +4,6 @@ import math
 import random
 from mathutils import Vector
 
-
 def get_face_pixel_step(context, face):
     """
     Finds the UV space amount for one pixel of a face, if it is textured
@@ -39,11 +38,6 @@ def get_face_pixel_step(context, face):
     pixel_step = Vector((1 / target_img.size[0], 1 / target_img.size[1]))
     return pixel_step
 
-
-
-
-
-
 def get_orientation(context):
     obj = bpy.context.view_layer.objects.active
     bm = bmesh.from_edit_mesh(obj.data)
@@ -53,7 +47,7 @@ def get_orientation(context):
     for face in bm.faces:
         if face.select:
             faces.append(face)
-    
+
     for face in faces:
         xmin, xmax = face.loops[0][uv_layer].uv.x, face.loops[0][uv_layer].uv.x
         ymin, ymax = face.loops[0][uv_layer].uv.y, face.loops[0][uv_layer].uv.y
@@ -118,21 +112,20 @@ def get_orientation(context):
                 distance = tempdistance
                 corner3 = loop
 
-
     #orientations:
     # 3 2   0 3   1 0   2 1
-    # 0 1   1 2   2 3   3 0  
+    # 0 1   1 2   2 3   3 0
 
     #1st case:
     #if corner3.vert.co.z >= corner0.vert.co.z and corner2.vert.co.z >= corner1.vert.co.z and corner3.vert.co.z >= corner1.vert.co.z and corner2.vert.co.z >= corner0.vert.co.z:
         #print("case1")
-    
+
     if corner0.vert.co.z >= corner1.vert.co.z and corner3.vert.co.z >= corner2.vert.co.z and corner0.vert.co.z >= corner2.vert.co.z and corner3.vert.co.z >= corner1.vert.co.z:
         #print("case2")
         for face in faces:
             for loop in face.loops:
                 newx = loop[uv_layer].uv.y
-                newy = -loop[uv_layer].uv.x 
+                newy = -loop[uv_layer].uv.x
                 loop[uv_layer].uv.x = newx
                 loop[uv_layer].uv.y = newy
 
@@ -141,7 +134,7 @@ def get_orientation(context):
         for face in faces:
             for loop in face.loops:
                 newx = -loop[uv_layer].uv.x
-                newy = -loop[uv_layer].uv.y 
+                newy = -loop[uv_layer].uv.y
                 loop[uv_layer].uv.x = newx
                 loop[uv_layer].uv.y = newy
 
@@ -150,16 +143,11 @@ def get_orientation(context):
         for face in faces:
             for loop in face.loops:
                 newx = -loop[uv_layer].uv.y
-                newy = loop[uv_layer].uv.x 
+                newy = loop[uv_layer].uv.x
                 loop[uv_layer].uv.x = newx
                 loop[uv_layer].uv.y = newy
 
     return None
-    
-
-
-
-
 
 def get_uv_ratio(context):
     #figure out uv size to then compare against subrect size
@@ -188,7 +176,7 @@ def get_uv_ratio(context):
         for loop in f.loops:
             loop_uv = loop[uv_layer]
             loop.vert.co.xy = loop_uv.uv
-            loop.vert.co.z = 0 
+            loop.vert.co.z = 0
     size = area = sum(f.calc_area() for f in faces if f.select)
 
     #return shape:
@@ -199,11 +187,6 @@ def get_uv_ratio(context):
             loop.vert.co.z = backupvert[2]
     #bmesh.update_edit_mesh(obj.data)
     return size
-
-
-
-
-
 
 def read_atlas(context):
     atlas = list()
@@ -234,17 +217,16 @@ def read_atlas(context):
         edge1 = xmax - xmin
         edge2 = ymax - ymin
 
-        
         rect = list()
-        
+
         for loop in face.loops:
             loop_uv = loop[uv_layer]
             #make sure to create new uv vector here, dont reference
             uvcoord = Vector((loop_uv.uv.x,loop_uv.uv.y))
             rect.append(uvcoord)
-        
+
         new_subrect.uvcoord = rect
-        
+
         #calculate aspect ratio
         if edge1 > 0 and edge2 > 0:
 
@@ -265,20 +247,12 @@ def read_atlas(context):
 
             size = float('%.2g' % size) #round to 2 significant digits
 
-            
-
-
             new_subrect.aspect = aspect
             new_subrect.posaspect = posaspect
             new_subrect.size = size
-            atlas.append(new_subrect)   
+            atlas.append(new_subrect)
 
     return atlas
-
-
-
-
-
 
 def donut_uv_fixer(context):
     obj = bpy.context.view_layer.objects.active
@@ -301,10 +275,10 @@ def donut_uv_fixer(context):
         if e.select is True:
             edge_list.append(e)
             #print(e)
-            
+
     #select faces again
     for f in faces:
-        f.select = True      
+        f.select = True
     #get start loop (this makes sure we loop in the right direction)
     startloop = None
 
@@ -321,8 +295,7 @@ def donut_uv_fixer(context):
     sorted_vert_list.append(startloop.vert)
     startloop.edge.select = False
     sorted_vert_list.append(startloop.link_loop_next.vert)
-    
-    print("CHECKING DOUNt!!!!")
+
     for i in range(1,len(edge_list)-1):
         #catch if a patch is donut shaped:
         if i >= len(sorted_vert_list):
@@ -341,16 +314,8 @@ def donut_uv_fixer(context):
         f.select = True
 
     return True
-    
-
-
-
-
-
 
 def square_fit(context):
-
-       
     #return {'FINISHED'}
 
     obj = bpy.context.view_layer.objects.active
@@ -364,16 +329,16 @@ def square_fit(context):
     for face in bm.faces:
         if face.select:
             faces.append(face)
-    
-    #TEST IF QUADS OR NOT    
+
+    #TEST IF QUADS OR NOT
     quadmethod = True
     #EXPERIMENTAL! TO MUCH SKEWING TEST:
     distorted = False
 
-    for face in faces: 
+    for face in faces:
         if len(face.loops) != 4 :
             quadmethod = False
-    
+
     #FIRST FIX DONUT SHAPES:
     noDonut = True
     noDonut = donut_uv_fixer(context)
@@ -384,12 +349,12 @@ def square_fit(context):
         for e in bm.edges:
             if e.select is True:
                 boundary_edge_list.append(e)
-        
+
         #pick a random edge for where the topology cut will start
         #active_edge = boundary_edge_list[0]
-        active_edge = boundary_edge_list[random.randint(0, len(boundary_edge_list)-1)]      
+        active_edge = boundary_edge_list[random.randint(0, len(boundary_edge_list)-1)]
         bm.select_history.add(active_edge)
-        
+
         #if its all quads, we can probably just cut it straight
         if quadmethod:
             for l in active_edge.verts[0].link_edges:
@@ -397,14 +362,13 @@ def square_fit(context):
                     l.select = True
                     bm.select_history.add(l)
                     break
-            
+
             bpy.ops.mesh.loop_multi_select(ring=False)
-            
-        
+
         else:
             #walk through the boundary where the active edge exists to deselect them without deselecting the other boundary
-            currentvert = active_edge.verts[0]       
-            foundedge = True   
+            currentvert = active_edge.verts[0]
+            foundedge = True
             while foundedge == True:
                 foundedge = False
                 for le in currentvert.link_edges:
@@ -413,19 +377,18 @@ def square_fit(context):
                         le.select = False
                         foundedge = True
                         break
-            
-            
+
             #Dijkstra version
             #1)make list of all verts for distance values:
             Dverts = list()
             for v in bm.verts:
                 Dverts.append(0)
-            
+
             #set first index
             active_edge.select=False
             Dverts[active_edge.verts[0].index] = 1
             startvert = active_edge.verts[0].index
-            
+
             #this will be a loop
             endvert = 0
             currentStep = 1
@@ -440,19 +403,19 @@ def square_fit(context):
                                 iterating = False
                                 endvert = l.other_vert(v).index
                                 break
-                currentStep += 1  
-            
+                currentStep += 1
+
             #now we have a start and end vert, just run shortest path between them for quick selection
             for v in bm.verts:
                 v.select = False
             for e in boundary_edge_list:
                 e.select = False
-            bm.verts.ensure_lookup_table()    
+            bm.verts.ensure_lookup_table()
             bm.verts[startvert].select=True
             bm.verts[endvert].select=True
-            
+
             bpy.ops.mesh.select_mode(type="VERT")
-            
+
             #if shortest path is more than one edge use:
             shortconnection = False
             for l in bm.verts[startvert].link_edges:
@@ -460,19 +423,16 @@ def square_fit(context):
                     shortconnection = True
             if shortconnection == False:
                 bpy.ops.mesh.shortest_path_select(edge_mode='SELECT')
-            
+
             bpy.ops.mesh.select_mode(type="EDGE")
-                    
+
         #turn into seam and split
         bpy.ops.mesh.mark_seam(clear=False)
         bpy.ops.mesh.edge_split()
-        
 
         #reset selection
         for f in faces:
-            f.select = True 
-    
-    
+            f.select = True
 
     #SLOW HERE, find faster way to test if selection is ring shaped
 
@@ -485,16 +445,16 @@ def square_fit(context):
         if e.select is True:
             edge_list.append(e)
             #print(e)
-            
+
     #select faces again
     for f in faces:
-        f.select = True      
+        f.select = True
     #get start loop (this makes sure we loop in the right direction)
     startloop = None
 
     if(len(edge_list) == 0):
         #print("weird! - means no mesh was sent?")
-        return distorted 
+        return distorted
 
     for l in edge_list[0].link_loops:
         if l.face.select is True:
@@ -516,7 +476,6 @@ def square_fit(context):
             for f in faces:
                 f.select = True
             bmesh.update_edit_mesh(obj.data)
-            #print("DONUT PATCH!!!!")
             return False
 
         for e in sorted_vert_list[i].link_edges:
@@ -554,7 +513,6 @@ def square_fit(context):
             angle += 360
         sorted_angle_list.append(angle)
 
-    
     #find concaves:
     for i in range(len(sorted_angle_list)):
         if sorted_angle_list[i] > 230:
@@ -627,7 +585,7 @@ def square_fit(context):
             if i != 0:
                 l = (sorted_vert_list[i-1].co.xyz - sorted_vert_list[i].co.xyz).length
                 edge.append(sorted_edge_ratios[i-1] + l)
-            
+
         if sorted_corner_list[i] is False:
             l = (sorted_vert_list[i-1].co.xyz - sorted_vert_list[i].co.xyz).length
             sorted_edge_ratios.append(sorted_edge_ratios[i-1] + l)
@@ -635,8 +593,7 @@ def square_fit(context):
             l = (sorted_vert_list[i].co.xyz - sorted_vert_list[0].co.xyz).length
             edge.append(sorted_edge_ratios[i] + l)
 
-    
-    if quadmethod: 
+    if quadmethod:
     #MAP FIRST QUAD
         edge1 = (faces[0].loops[0].vert.co.xyz - faces[0].loops[1].vert.co.xyz).length
         edge2 = (faces[0].loops[1].vert.co.xyz - faces[0].loops[2].vert.co.xyz).length
@@ -664,7 +621,7 @@ def square_fit(context):
         xmin, xmax = faces[0].loops[0][uv_layer].uv.x, faces[0].loops[0][uv_layer].uv.x
         ymin, ymax = faces[0].loops[0][uv_layer].uv.y, faces[0].loops[0][uv_layer].uv.y
 
-        for face in faces: 
+        for face in faces:
             for vert in face.loops:
                 xmin = min(xmin, vert[uv_layer].uv.x)
                 xmax = max(xmax, vert[uv_layer].uv.x)
@@ -685,7 +642,7 @@ def square_fit(context):
                 loop[uv_layer].uv.y -= ymin
                 loop[uv_layer].uv.x /= (xmax-xmin)
                 loop[uv_layer].uv.y /= (ymax-ymin)
-        
+
         #shift extents to be positive only:
         xmax = xmax - xmin
         ymax = ymax - ymin
@@ -696,7 +653,7 @@ def square_fit(context):
             tedge = edge1
             edge1 = edge2
             edge2 = tedge
-        
+
         if xmax >= ymax:
             for face in faces:
                 for loop in face.loops:
@@ -720,27 +677,27 @@ def square_fit(context):
             while sorted_corner_list[i] is False:
                 for l in sorted_vert_list[i].link_loops:
                     if l.face.select is True:
-                        l[uv_layer].uv = Vector((sorted_edge_ratios[i]/edge[0],0)) 
-                i += 1 
+                        l[uv_layer].uv = Vector((sorted_edge_ratios[i]/edge[0],0))
+                i += 1
             #EDGE 2
             for l in sorted_vert_list[i].link_loops:
                 if l.face.select is True:
-                    l[uv_layer].uv = Vector((1,0))        
+                    l[uv_layer].uv = Vector((1,0))
             i += 1
             while sorted_corner_list[i] is False:
                 for l in sorted_vert_list[i].link_loops:
                     if l.face.select is True:
-                        l[uv_layer].uv = Vector((1,sorted_edge_ratios[i]/edge[1])) 
-                i += 1     
+                        l[uv_layer].uv = Vector((1,sorted_edge_ratios[i]/edge[1]))
+                i += 1
             #EDGE 3
             for l in sorted_vert_list[i].link_loops:
                 if l.face.select is True:
-                    l[uv_layer].uv = Vector((1,1))         
+                    l[uv_layer].uv = Vector((1,1))
             i += 1
             while sorted_corner_list[i] is False:
                 for l in sorted_vert_list[i].link_loops:
                     if l.face.select is True:
-                        l[uv_layer].uv = Vector((1-(sorted_edge_ratios[i]/edge[2]),1)) 
+                        l[uv_layer].uv = Vector((1-(sorted_edge_ratios[i]/edge[2]),1))
                 i += 1
             #EDGE 4
             for l in sorted_vert_list[i].link_loops:
@@ -753,7 +710,7 @@ def square_fit(context):
                         l[uv_layer].uv = Vector((0,1-(sorted_edge_ratios[o]/edge[3])))
 
             #set proper aspect ratio
-        
+
             for f in bm.faces:
                 if f.select is True:
                     for loop in f.loops:
@@ -761,7 +718,6 @@ def square_fit(context):
                         loop_uv.uv.x *= edge[0]
                         loop_uv.uv.y *= edge[1]
 
-        
         #newmethod:
         #select boundary and pin
         bpy.ops.uv.select_all(action='DESELECT')
@@ -769,26 +725,21 @@ def square_fit(context):
             for l in v.link_loops:
                 l[uv_layer].select = True
         bpy.ops.uv.pin(clear=False)
-        
+
         #select all and unwrap (and unpin?)
-        bpy.ops.uv.select_all(action='SELECT')  
+        bpy.ops.uv.select_all(action='SELECT')
         bpy.ops.uv.unwrap(method='CONFORMAL', margin=0.001)
         bpy.ops.uv.pin(clear=True)
-        
+
         #return False
         #select boundary and unpin
 
         #bpy.ops.uv.select_all(action='SELECT')
         #expand middle verts
-        #bpy.ops.uv.minimize_stretch(iterations=50)   
+        #bpy.ops.uv.minimize_stretch(iterations=50)
         #return true if rect fit was succesful
-        
-        return not distorted     
 
-
-
-
-
+        return not distorted
 
 class subrect:
     aspect = int()
@@ -798,5 +749,3 @@ class subrect:
 
 class trim:
     uvcoord = list()
-
-

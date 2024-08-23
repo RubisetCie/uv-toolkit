@@ -1,21 +1,13 @@
-# DreamUV
+# UV Toolkit (DreamUV)
 
 ## About
-DreamUV is a collection of tools that allow you to manipulate UVs in the 3D viewport. This toolset is designed to be used with reusable textures like tiling textures, trimsheets and texture atlases. Its intent is to allow you to texture your geometry without having to exit the 3D view, saving you time and improving flexibility.
+UV Toolkit is a collection of tools that allow you to manipulate UVs in the 3D viewport. This toolset is designed to be used with reusable textures like tiling textures, trimsheets and texture atlases. Its intent is to allow you to texture your geometry without having to exit the 3D view, saving you time and improving flexibility.
 
 ![screenshot](http://www.brameulaers.net/blender/addons/github_images/dreamuv_header.jpg)
 
-## Installation
+## Usage
 
-* download as a zip and in user Preferences/Add-ons, use "Install from File..."
-* DreamUV should now be visible in the add-ons tab, in the UV category.
-* once activated, you can find DreamUV in the toolbar in Edit mode.
-
-## Using DreamUV
-
-After installing, you can find the DreamUV toolset in the toolbar of the 3D viewport window. It'll appear when in edit mode.
-
-![screenshot](http://www.brameulaers.net/blender/addons/github_images/dreamuv_tools.jpg)
+After installing, you can find the toolset in the toolbar of the 3D viewport window. It'll appear when in edit mode.
 
 ## Viewport UV Tools
 
@@ -55,17 +47,17 @@ The **Move to UV Edge** will move the entire uv to the 0-1 uv boundary. This is 
 
 The **UV Transfer Tool** allows you to essentially copy paste a uv to a different spot. The top row are coordinates that represent a uv clipboard. You can type them in manually or use the grab from selection to save a UV boundary. The transfer to selection button will map the saved uv to your selection.
 
-## Hotspotting:
+## Hot-Spotting:
 
-Hotspotting is a technique to quickly assign uv's to UV islands by referencing a predefined uv atlas. The DreamUV hotspot tool will attempt its best to find an appropriate sized rectangle on the atlas and fit it to the mesh geometry.
+Hot-Spotting is a technique to quickly assign UV's to UV islands by referencing a predefined uv atlas. The hot-spot tool will attempt its best to find an appropriate sized rectangle on the atlas and fit it to the mesh geometry.
 
-For the hotspotting tool to work correctly, an atlas needs to be created. This is simply a mesh consisting of a variety of different sized rectangles. For example:
+For the hot-spotting tool to work correctly, an atlas needs to be created. This is simply a mesh consisting of a variety of different sized rectangles. For example:
 ![screenshot](http://www.brameulaers.net/blender/addons/github_images/dreamuv_atlas.jpg)
 This is just one example layout, any layout should work.
 
 Keep in mind to scale the atlas geometry to a similar scale you want to uv's to be applied to your final mesh. Also make sure that the atlas object scale is set to 1 to make sure the sizes are transferred correctly.
 
-To hotspot a mesh, simply select the faces you want to hotspot and click the hotspot button. Clicking multiple times will make the tool cycle through different variations and uv placement. The mesh will be split into multiple uv islands that are hotspotted individually, using hard edges and seams. Its highly recommended to place extra seams manually to guide the tool and try to divide up your geometry into rectangular patches.
+To hot-spot a mesh, simply select the faces you want to hot-spot and click the hot-spot button. Clicking multiple times will make the tool cycle through different variations and uv placement. The mesh will be split into multiple uv islands that are hot-spotted individually, using hard edges and seams. Its highly recommended to place extra seams manually to guide the tool and try to divide up your geometry into rectangular patches.
 ![screenshot](http://www.brameulaers.net/blender/addons/github_images/dreamuv_hotspot.jpg)
 
 If you have any feedback you can just message me via twitter: @leukbaars

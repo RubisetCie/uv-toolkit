@@ -2,7 +2,6 @@ import bpy
 import bmesh
 import math
 
-
 class DREAMUV_OT_uv_rotate(bpy.types.Operator):
     """Rotate UVs in the 3D Viewport"""
     bl_idname = "view3d.dreamuv_uvrotate"
@@ -92,14 +91,13 @@ class DREAMUV_OT_uv_rotate(bpy.types.Operator):
             return {'CANCELLED'}
 
     def modal(self, context, event):
-        
+
         if event.type == 'MOUSEMOVE':
 
             #get angle of cursor from start pos in radians
             delta = -math.atan2(event.mouse_y-self.first_mouse_y,event.mouse_x-self.first_mouse_x)
             #neutralize angle for mouse start position
             delta+=self.startdelta
-
 
             vcenterx = (bpy.context.region.width/2)+bpy.context.region.x
 
@@ -128,14 +126,14 @@ class DREAMUV_OT_uv_rotate(bpy.types.Operator):
             bmesh.update_edit_mesh(self.mesh, loop_triangles=False, destructive=False)
 
         elif event.type == 'LEFTMOUSE':
-            
+
             #finish up and make sure changes are locked in place
             bpy.ops.object.mode_set(mode='OBJECT')
             bpy.ops.object.mode_set(mode='EDIT')
             return {'FINISHED'}
-        
+
         elif event.type in {'RIGHTMOUSE', 'ESC'}:
-            
+
             # reset all uvs to reference
             delta=0
             for i,face in enumerate(self.bm.faces):
@@ -162,7 +160,7 @@ class DREAMUV_OT_uv_rotate_step(bpy.types.Operator):
 
     direction : bpy.props.StringProperty()
 
-    def execute(self, context): 
+    def execute(self, context):
         mesh = bpy.context.object.data
         bm = bmesh.from_edit_mesh(mesh)
         bm.faces.ensure_lookup_table()
@@ -172,7 +170,7 @@ class DREAMUV_OT_uv_rotate_step(bpy.types.Operator):
         #MAKE FACE LIST
         for face in bm.faces:
             if face.select:
-                faces.append(face)  
+                faces.append(face)
 
         mirrored = False
         #check if mirrored:
@@ -190,14 +188,14 @@ class DREAMUV_OT_uv_rotate_step(bpy.types.Operator):
         #get original size
         xmin, xmax = faces[0].loops[0][uv_layer].uv.x, faces[0].loops[0][uv_layer].uv.x
         ymin, ymax = faces[0].loops[0][uv_layer].uv.y, faces[0].loops[0][uv_layer].uv.y
-        
-        for face in faces: 
+
+        for face in faces:
             for vert in face.loops:
                 xmin = min(xmin, vert[uv_layer].uv.x)
                 xmax = max(xmax, vert[uv_layer].uv.x)
                 ymin = min(ymin, vert[uv_layer].uv.y)
                 ymax = max(ymax, vert[uv_layer].uv.y)
-        
+
         xcenter=(xmin+xmax)/2
         ycenter=(ymin+ymax)/2
 
@@ -205,14 +203,12 @@ class DREAMUV_OT_uv_rotate_step(bpy.types.Operator):
         module_name = __name__.split('.')[0]
         addon_prefs = bpy.context.preferences.addons[module_name].preferences
         rotate_snap = addon_prefs.rotate_snap
-        print(rotate_snap)
 
         #PI/4=0.78539816339
         PIdiv=3.14159265359/(180/rotate_snap)
         delta = (3.14159265359/180)*rotate_snap
         #delta = math.floor(delta/PIdiv)*PIdiv
         if self.direction == "reverse":
-            print("reverse")
             #delta = (3.14159265359/180)-delta
             delta = -delta
         if mirrored:
@@ -233,10 +229,7 @@ class DREAMUV_OT_uv_rotate_step(bpy.types.Operator):
                 loop[uv_layer].uv.x += xcenter
                 loop[uv_layer].uv.y += ycenter
 
-
         #update mesh
         bmesh.update_edit_mesh(mesh, loop_triangles=False, destructive=False)
-
-
 
         return {'FINISHED'}

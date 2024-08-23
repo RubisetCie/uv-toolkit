@@ -4,12 +4,11 @@ import math
 from mathutils import Vector
 from . import DUV_Utils
 
-
 class DREAMUV_OT_uv_unwrap_square(bpy.types.Operator):
     """Unwrap and attempt to fit to a square shape"""
     bl_idname = "view3d.dreamuv_uvunwrapsquare"
     bl_label = "unwrap to square shape if possible"
-    
+
     def execute(self, context):
         obj = bpy.context.view_layer.objects.active
         bm = bmesh.from_edit_mesh(obj.data)
@@ -19,16 +18,15 @@ class DREAMUV_OT_uv_unwrap_square(bpy.types.Operator):
         #MAKE FACE LIST
         for face in bm.faces:
             if face.select:
-                HSfaces.append(face)    
+                HSfaces.append(face)
 
-        
         is_rect = DUV_Utils.square_fit(context)
 
         #FIT TO 0-1 range
         xmin, xmax = HSfaces[0].loops[0][uv_layer].uv.x, HSfaces[0].loops[0][uv_layer].uv.x
         ymin, ymax = HSfaces[0].loops[0][uv_layer].uv.y, HSfaces[0].loops[0][uv_layer].uv.y
-        
-        for face in HSfaces: 
+
+        for face in HSfaces:
             for vert in face.loops:
                 xmin = min(xmin, vert[uv_layer].uv.x)
                 xmax = max(xmax, vert[uv_layer].uv.x)

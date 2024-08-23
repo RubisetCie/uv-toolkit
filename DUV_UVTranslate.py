@@ -4,7 +4,6 @@ import math
 from mathutils import Vector
 from . import DUV_Utils
 
-
 class DREAMUV_OT_uv_translate(bpy.types.Operator):
     """Translate UVs in the 3D Viewport"""
     bl_idname = "view3d.dreamuv_uvtranslate"
@@ -77,7 +76,6 @@ class DREAMUV_OT_uv_translate(bpy.types.Operator):
             self.move_snap = addon_prefs.move_snap
             self.move_snap = 1/self.move_snap
 
-            print(self.move_snap)
             # Precalculate data before going into modal
             self.pixel_steps = {}
             for i, face in enumerate(self.bm.faces):
@@ -225,7 +223,7 @@ class DREAMUV_OT_uv_translate(bpy.types.Operator):
             return {'FINISHED'}
 
         elif event.type in {'RIGHTMOUSE', 'ESC'}:
-            
+
             # reset all uvs to reference
             for i, face in enumerate(self.bm.faces):
                 if face.select:
@@ -246,7 +244,7 @@ class DREAMUV_OT_uv_translate_step(bpy.types.Operator):
 
     direction : bpy.props.StringProperty()
 
-    def execute(self, context): 
+    def execute(self, context):
         mesh = bpy.context.object.data
         bm = bmesh.from_edit_mesh(mesh)
         bm.faces.ensure_lookup_table()
@@ -267,7 +265,7 @@ class DREAMUV_OT_uv_translate_step(bpy.types.Operator):
             ymove = -move_snap
         if self.direction == "down":
             ymove =  move_snap
-        
+
         for face in bm.faces:
             if face.select:
                 for loop in face.loops:
@@ -276,7 +274,5 @@ class DREAMUV_OT_uv_translate_step(bpy.types.Operator):
 
         #update mesh
         bmesh.update_edit_mesh(mesh, loop_triangles=False, destructive=False)
-
-
 
         return {'FINISHED'}

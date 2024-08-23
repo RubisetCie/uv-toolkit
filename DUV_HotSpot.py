@@ -5,7 +5,6 @@ import random
 from mathutils import Vector
 from . import DUV_Utils
 
-
 def main(context):
     #Check if an atlas object exists
     if context.scene.subrect_atlas is None:
@@ -15,14 +14,13 @@ def main(context):
     #make sure active object is actually selected in edit mode:
     if bpy.context.object.mode == 'EDIT':
         bpy.context.object.select_set(True)
-    
-        
+
     #check for object or edit mode:
     objectmode = False
     if bpy.context.object.mode == 'OBJECT':
         objectmode = True
         #switch to edit and select all
-        bpy.ops.object.editmode_toggle() 
+        bpy.ops.object.editmode_toggle()
         bpy.ops.mesh.select_all(action='SELECT')
 
     #check if uv sync selection is used and turn off if so
@@ -30,7 +28,6 @@ def main(context):
     if bpy.context.scene.tool_settings.use_uv_select_sync == True:
         uvsync = True
         bpy.context.scene.tool_settings.use_uv_select_sync = False
-
 
     obj = bpy.context.view_layer.objects.active
     bm = bmesh.from_edit_mesh(obj.data)
@@ -47,7 +44,7 @@ def main(context):
         if doesmatexist is False:
             obj.data.materials.append(context.scene.duv_hotspotmaterial)
         for face in bm.faces:
-            if face.select: 
+            if face.select:
                 face.material_index = matindex
     bmesh.update_edit_mesh(obj.data)
 
@@ -55,26 +52,19 @@ def main(context):
     object_original = bpy.context.view_layer.objects.active
     bpy.ops.object.editmode_toggle()
     bpy.ops.object.duplicate()
-    
-    #setup hard edges on duplicate 
-    #create hard edges 
-    
-        
-    #bpy.ops.object.shade_smooth_by_angle()
-    
+
     smoothmodifier = False
     for m in bpy.context.active_object.modifiers:
         if m.name == 'Auto Smooth' or m.name == 'Smooth by Angle':
             smoothmodifier = True
-    
+
     if smoothmodifier:
         #apply smoothing modifier
         bpy.ops.object.modifier_apply(modifier="Smooth by Angle")
     else:
         #auto smooth - assume 30 degrees until someone complains
         bpy.ops.object.shade_smooth_by_angle(angle=0.523599)
-        
-    
+
     bpy.ops.object.editmode_toggle()
     bpy.context.view_layer.objects.active.name = "dreamuv_temp"
     object_temporary = bpy.context.view_layer.objects.active
@@ -91,12 +81,11 @@ def main(context):
     bmesh.update_edit_mesh(obj.data)
     bpy.ops.mesh.select_all(action='DESELECT')
     bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='EDGE')
-    
+
     #broken in 4.1
     #angle = bpy.context.object.data.auto_smooth_angle
     #bpy.ops.mesh.edges_select_sharp(sharpness=angle)
 
-    
     bpy.ops.mesh.mark_seam(clear=False)
     bpy.ops.mesh.select_all(action='DESELECT')
 
@@ -107,17 +96,7 @@ def main(context):
     bpy.ops.mesh.edge_split(type='EDGE')
     bpy.ops.mesh.select_all(action='DESELECT')
 
-    
-    
-    
-    
-    
-    
-    
-    
-
     #select all faces to be hotspotted again:
-    
     for face in faces:
         face.select = True
 
@@ -128,7 +107,7 @@ def main(context):
     #list islands
     #iterate using select linked uv
 
-    islands = list()        
+    islands = list()
     tempfaces = list()
     updatedfaces = list()
     #MAKE FACE LIST
@@ -137,7 +116,7 @@ def main(context):
             updatedfaces.append(face)
             tempfaces.append(face)
             face.select = False
-           
+
     while len(tempfaces) > 0:
         updatedfaces[0].select = True
         bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='FACE')
@@ -155,7 +134,7 @@ def main(context):
             if face.select == False:
                 tempfaces.append(face)
             else:
-                face.select = False 
+                face.select = False
         #make new list into updated list
         updatedfaces.clear()
         updatedfaces = tempfaces.copy()
@@ -173,29 +152,29 @@ def main(context):
             face.select = False
         for face in island:
             face.select = True
-                    
+
         HSfaces = list()
         #MAKE FACE LIST
         for face in bm.faces:
             if face.select:
-                HSfaces.append(face)    
+                HSfaces.append(face)
 
         #get original size
         xmin2, xmax2 = HSfaces[0].loops[0][uv_layer].uv.x, HSfaces[0].loops[0][uv_layer].uv.x
         ymin2, ymax2 = HSfaces[0].loops[0][uv_layer].uv.y, HSfaces[0].loops[0][uv_layer].uv.y
-        for face in HSfaces: 
+        for face in HSfaces:
             for vert in face.loops:
                 xmin2 = min(xmin2, vert[uv_layer].uv.x)
                 xmax2 = max(xmax2, vert[uv_layer].uv.x)
                 ymin2 = min(ymin2, vert[uv_layer].uv.y)
                 ymax2 = max(ymax2, vert[uv_layer].uv.y)
-      
+
         #try fitting selection to square
         is_rect = DUV_Utils.square_fit(context)
         if is_rect is False:
-            
+
             #return {'FINISHED'}
-        
+
             bmesh.update_edit_mesh(obj.data)
             bpy.ops.uv.unwrap(method='CONFORMAL', margin=0.001)
             uv_layer = bm.loops.layers.uv.verify()
@@ -206,8 +185,8 @@ def main(context):
         #FIT TO 0-1 range
         xmin, xmax = HSfaces[0].loops[0][uv_layer].uv.x, HSfaces[0].loops[0][uv_layer].uv.x
         ymin, ymax = HSfaces[0].loops[0][uv_layer].uv.y, HSfaces[0].loops[0][uv_layer].uv.y
-        
-        for face in HSfaces: 
+
+        for face in HSfaces:
             for vert in face.loops:
                 xmin = min(xmin, vert[uv_layer].uv.x)
                 xmax = max(xmax, vert[uv_layer].uv.x)
@@ -231,14 +210,14 @@ def main(context):
         edge2 = ymax-ymin
         aspect = edge1/edge2
         size = area = sum(f.calc_area() for f in HSfaces if f.select)
-        
+
         if is_rect is False:
             #calulate ratio empty vs full
             sizeratio = DUV_Utils.get_uv_ratio(context)
             #prevent divide by 0:
             if sizeratio == 0:
                 sizeratio = 1.0
-            size = size / sizeratio 
+            size = size / sizeratio
 
         if aspect > 1:
             aspect = round(aspect)
@@ -251,37 +230,36 @@ def main(context):
         #find closest aspect ratio in list
 
         #2 variations depending on tall or wide
-        
+
         index = 0
         templength = abs(atlas[0].posaspect-aspect)
         tempindex = 0
 
         worldorientation = context.scene.duv_useorientation
-        
+
         if worldorientation:
             for number in atlas:
-                    testlength = abs(number.aspect-aspect) 
+                    testlength = abs(number.aspect-aspect)
                     if testlength < templength:
                         templength = testlength
                         tempindex = index
                     index += 1
 
         if not worldorientation:
-                
             #wide:
             if aspect >= 1.0:
                 for number in atlas:
-                    testlength = abs(number.posaspect-aspect) 
+                    testlength = abs(number.posaspect-aspect)
                     if testlength < templength:
                         templength = testlength
                         tempindex = index
                     index += 1
-            
+
             #tall:
             if aspect < 1.0:
                 templength = abs((atlas[0].posaspect)-(1/aspect))
                 for number in atlas:
-                    testlength = abs((number.posaspect)-(1/aspect)) 
+                    testlength = abs((number.posaspect)-(1/aspect))
                     if testlength < templength:
                         templength = testlength
                         tempindex = index
@@ -305,12 +283,12 @@ def main(context):
 
         validrects = list()
         for a in aspectbucket:
-            testlength = abs(a.size-size) 
+            testlength = abs(a.size-size)
             if testlength <= templength:
                 templength = testlength
                 tempindex = index
             index += 1
-        
+
         index = 0
         for a in aspectbucket:
             if a.size == aspectbucket[tempindex].size:
@@ -327,7 +305,7 @@ def main(context):
         ymin, ymax = aspectbucket[tempindex].uvcoord[0].y, aspectbucket[tempindex].uvcoord[0].y
 
         for vert in aspectbucket[tempindex].uvcoord:
-            
+
             xmin = min(xmin, vert.x)
             xmax = max(xmax, vert.x)
             ymin = min(ymin, vert.y)
@@ -360,7 +338,7 @@ def main(context):
                     newy = loop[uv_layer].uv.x
                     loop[uv_layer].uv.x = newx
                     loop[uv_layer].uv.y = newy
-        
+
         #TALL case becomes WIDE
         if aspectbucket[tempindex].aspect > 1.0 and aspect < 1.0:
             for face in HSfaces:
@@ -398,7 +376,7 @@ def main(context):
                 flips = random.randint(0, 3)
                 for x in range(flips):
                     bpy.ops.view3d.dreamuv_uvcycle()
-        
+
         #and also do randomized mirroring:
         if use_mirrorx is True:
             randomMirrorX = random.randint(0, 1)
@@ -412,7 +390,7 @@ def main(context):
 
         #apply material from index
         if context.scene.duv_hotspotmaterial is not None:
-            for face in HSfaces:   
+            for face in HSfaces:
                 face.material_index = matindex
 
     for face in faces:
@@ -421,9 +399,9 @@ def main(context):
     bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='FACE')
 
     #transfer UV maps back to original mesh
-    
+
     obj = bpy.context.view_layer.objects.active
-    bm = bmesh.from_edit_mesh(obj.data) 
+    bm = bmesh.from_edit_mesh(obj.data)
     uv_layer = bm.loops.layers.uv.verify()
     uv_backup = list();
     #print("new UV:")
@@ -436,15 +414,15 @@ def main(context):
             backupface.append(backupuv)
             #print(backupuv)
         uv_backup.append(backupface)
-        
+
     #now apply to original mesh
     bpy.ops.object.editmode_toggle()
     object_temporary.select_set(False)
     object_original.select_set(True)
     bpy.ops.object.editmode_toggle()
-    
+
     obj = object_original
-    bm = bmesh.from_edit_mesh(obj.data) 
+    bm = bmesh.from_edit_mesh(obj.data)
     uv_layer = bm.loops.layers.uv.verify()
     #uv_backup = list();
     #print("new UV:")
@@ -453,40 +431,37 @@ def main(context):
             vert[uv_layer].uv.x = backupuv[0]
             vert[uv_layer].uv.y = backupuv[1]
     bmesh.update_edit_mesh(obj.data)
-    
-           
-    
-    bpy.ops.object.editmode_toggle() 
-    
+
+    bpy.ops.object.editmode_toggle()
+
     object_original.select_set(False)
     object_temporary.select_set(True)
     bpy.ops.object.delete(use_global=False)
     object_original.select_set(True)
     context.view_layer.objects.active=bpy.context.selected_objects[0]
-    
+
     if uvsync == True:
         bpy.ops.object.editmode_toggle()
         bpy.context.scene.tool_settings.use_uv_select_sync = True
         bpy.ops.object.editmode_toggle()
-        
-    
+
     if objectmode is False:
-        bpy.ops.object.editmode_toggle() 
-    
+        bpy.ops.object.editmode_toggle()
+
     #temp - do both uvs!
     #if context.scene.duv_uv2copy == True:
     #    if bpy.context.object.mode == 'EDIT':
     #        bpy.ops.brm.copyuvs()
     #        print("copying uvs")
-        
+
 class DREAMUV_OT_hotspotter(bpy.types.Operator):
     """Unwrap selection using the atlas object as a guide"""
     bl_idname = "view3d.dreamuv_hotspotter"
-    bl_label = "HotSpot"
+    bl_label = "Hot-Spot"
     bl_options = {"UNDO"}
 
     def execute(self, context):
-    
+
         #remember selected uv
         uv_index = bpy.context.view_layer.objects.active.data.uv_layers.active_index
         if context.scene.duv_hotspot_uv1 == True:
@@ -500,11 +475,11 @@ class DREAMUV_OT_hotspotter(bpy.types.Operator):
             main(context)
         #reset selected uv
         bpy.context.view_layer.objects.active.data.uv_layers.active_index = uv_index
-        
+
         if context.scene.duv_autoboxmap == True:
             bpy.ops.view3d.dreamuv_uvboxmap()
-        
+
         #main(context)
         return {'FINISHED'}
-        
-        bpy.ops.object.editmode_toggle() 
+
+        bpy.ops.object.editmode_toggle()

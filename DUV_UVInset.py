@@ -2,7 +2,6 @@ import bpy
 import bmesh
 import math
 
-
 class DREAMUV_OT_uv_inset(bpy.types.Operator):
     """Inset UVs in the 3D Viewport"""
     bl_idname = "view3d.dreamuv_uvinset"
@@ -97,7 +96,7 @@ class DREAMUV_OT_uv_inset(bpy.types.Operator):
             return {'CANCELLED'}
 
     def modal(self, context, event):
-        
+
         if event.type == 'X':
             self.xlock=False
             self.ylock=True
@@ -123,7 +122,6 @@ class DREAMUV_OT_uv_inset(bpy.types.Operator):
             else:
                 self.xlock=False
                 self.ylock=True
-
 
         if event.type == 'MOUSEMOVE':
 
@@ -193,14 +191,14 @@ class DREAMUV_OT_uv_inset(bpy.types.Operator):
             bmesh.update_edit_mesh(self.mesh, False, False)
 
         elif event.type == 'LEFTMOUSE':
-            
+
             #finish up and make sure changes are locked in place
             bpy.ops.object.mode_set(mode='OBJECT')
             bpy.ops.object.mode_set(mode='EDIT')
             return {'FINISHED'}
 
         elif event.type in {'RIGHTMOUSE', 'ESC'}:
-            
+
             #reset all uvs to reference
             for i,face in enumerate(self.bm.faces):
                 if face.select:
@@ -220,7 +218,7 @@ class DREAMUV_OT_uv_inset_step(bpy.types.Operator):
 
     direction : bpy.props.StringProperty()
 
-    def execute(self, context): 
+    def execute(self, context):
         mesh = bpy.context.object.data
         bm = bmesh.from_edit_mesh(mesh)
         bm.faces.ensure_lookup_table()
@@ -230,23 +228,18 @@ class DREAMUV_OT_uv_inset_step(bpy.types.Operator):
         #MAKE FACE LIST
         for face in bm.faces:
             if face.select:
-                faces.append(face)  
+                faces.append(face)
 
         #get original size
         xmin, xmax = faces[0].loops[0][uv_layer].uv.x, faces[0].loops[0][uv_layer].uv.x
         ymin, ymax = faces[0].loops[0][uv_layer].uv.y, faces[0].loops[0][uv_layer].uv.y
-        
-        for face in faces: 
+
+        for face in faces:
             for vert in face.loops:
                 xmin = min(xmin, vert[uv_layer].uv.x)
                 xmax = max(xmax, vert[uv_layer].uv.x)
                 ymin = min(ymin, vert[uv_layer].uv.y)
                 ymax = max(ymax, vert[uv_layer].uv.y)
-        
-        print(xmin)
-        print(xmax)
-        print(ymin)
-        print(ymax)
 
         for face in faces:
                 for loop in face.loops:
@@ -278,7 +271,5 @@ class DREAMUV_OT_uv_inset_step(bpy.types.Operator):
 
         #update mesh
         bmesh.update_edit_mesh(mesh, loop_triangles=False, destructive=False)
-
-
 
         return {'FINISHED'}

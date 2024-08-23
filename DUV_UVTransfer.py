@@ -9,10 +9,10 @@ class DREAMUV_OT_uv_transfer(bpy.types.Operator):
     bl_label = "UV Transfer"
     bl_options = {"UNDO"}
 
-    def execute(self, context):  
-        
+    def execute(self, context):
+
         bpy.ops.uv.select_split()
- 
+
         obj = bpy.context.view_layer.objects.active
         bm = bmesh.from_edit_mesh(obj.data)
         uv_layer = bm.loops.layers.uv.verify()
@@ -54,13 +54,11 @@ class DREAMUV_OT_uv_transfer(bpy.types.Operator):
                 elif vert[bm.loops.layers.uv.active].uv.y > ymax:
                     ymax=vert[bm.loops.layers.uv.active].uv.y
 
-
         aspect = (xmax-xmin)/(ymax-ymin)
         aspecttarget = (context.scene.uvtransferxmax-context.scene.uvtransferxmin)/(context.scene.uvtransferymax-context.scene.uvtransferymin)
         print("aspects")
         print(aspect)
         print(aspecttarget)
-        
 
         #move to 0,1
 
@@ -82,7 +80,7 @@ class DREAMUV_OT_uv_transfer(bpy.types.Operator):
             vert[bm.loops.layers.uv.active].uv.x = (vert[bm.loops.layers.uv.active].uv.x * (context.scene.uvtransferxmax-context.scene.uvtransferxmin)) + context.scene.uvtransferxmin
             vert[bm.loops.layers.uv.active].uv.y = (vert[bm.loops.layers.uv.active].uv.y * (context.scene.uvtransferymax-context.scene.uvtransferymin)) + context.scene.uvtransferymin
 
-                
+
         bmesh.update_edit_mesh(obj.data)
 
         #cycle if needed:
@@ -98,7 +96,7 @@ class DREAMUV_OT_uv_transfer_grab(bpy.types.Operator):
 
     def execute(self, context):
         bpy.ops.uv.select_split()
- 
+
         obj = bpy.context.view_layer.objects.active
         bm = bmesh.from_edit_mesh(obj.data)
         uv_layer = bm.loops.layers.uv.verify()
@@ -106,8 +104,6 @@ class DREAMUV_OT_uv_transfer_grab(bpy.types.Operator):
         faces = list()
 
         xmin,xmax,ymin,ymax=0,0,0,0
-
-        
 
         selected_uv_loops = list()
 
@@ -142,13 +138,10 @@ class DREAMUV_OT_uv_transfer_grab(bpy.types.Operator):
                 elif vert[bm.loops.layers.uv.active].uv.y > ymax:
                     ymax=vert[bm.loops.layers.uv.active].uv.y
 
-
         context.scene.uvtransferxmax = xmax
         context.scene.uvtransferxmin = xmin
         context.scene.uvtransferymax = ymax
         context.scene.uvtransferymin = ymin
 
         return {'FINISHED'}
-        
 
-        
