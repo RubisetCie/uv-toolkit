@@ -1,0 +1,13 @@
+schema_version = "1.0.0"
+
+id = "dream_uv"
+name = "UV Toolkit"
+maintainer = "Bram Eulaers"
+tagline = "Edit selected faces'UVs directly inside the 3D Viewport."
+version = "1.0.0"
+website = "https://github.com/RubisetCie/uv-toolkit"
+license = ["SPDX:GPL-3.0-or-later"]
+tags = ["UV"]
+type = "add-on"
+
+blender_version_min = "4.2.0"

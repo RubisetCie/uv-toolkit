@@ -40,8 +40,7 @@ class DREAMUV_OT_uv_scale(bpy.types.Operator):
         self.constrainttest = False
 
         self.scale_snap = 2
-        module_name = __name__.split('.')[0]
-        addon_prefs = bpy.context.preferences.addons[module_name].preferences
+        addon_prefs = bpy.context.preferences.addons[__package__].preferences
         self.scale_snap = addon_prefs.scale_snap
 
         if context.object:
@@ -257,8 +256,7 @@ class DREAMUV_OT_uv_scale_step(bpy.types.Operator):
         ycenter=(ymin+ymax)/2
 
         #step rotation
-        module_name = __name__.split('.')[0]
-        addon_prefs = bpy.context.preferences.addons[module_name].preferences
+        addon_prefs = bpy.context.preferences.addons[__package__].preferences
         scale_snap_x = addon_prefs.scale_snap
         scale_snap_y = addon_prefs.scale_snap
 

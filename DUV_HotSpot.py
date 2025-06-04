@@ -509,7 +509,7 @@ class DREAMUV_OT_hotspotter(bpy.types.Operator):
 
         #main(context)
         return {'FINISHED'}
-        
+
 class DREAMUV_OT_pushhotspot(bpy.types.Operator):
     """Set hotspot settings from list"""
     bl_idname = "view3d.dreamuv_pushhotspot"
@@ -561,5 +561,5 @@ class DREAMUV_OT_pushhotspot(bpy.types.Operator):
             context.scene.subrect_atlas = context.scene.subrect_atlas8
             context.scene.duv_hotspotmaterial = context.scene.duv_hotspotmaterial8
             context.scene.duv_hotspot_atlas8 = True
-        
+
         return {'FINISHED'}

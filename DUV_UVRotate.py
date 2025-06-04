@@ -28,8 +28,7 @@ class DREAMUV_OT_uv_rotate(bpy.types.Operator):
         bpy.ops.object.mode_set(mode='EDIT')
 
         self.rotate_snap = 45
-        module_name = __name__.split('.')[0]
-        addon_prefs = bpy.context.preferences.addons[module_name].preferences
+        addon_prefs = bpy.context.preferences.addons[__package__].preferences
         self.rotate_snap = addon_prefs.rotate_snap
 
         if context.object:
@@ -200,8 +199,7 @@ class DREAMUV_OT_uv_rotate_step(bpy.types.Operator):
         ycenter=(ymin+ymax)/2
 
         #step rotation
-        module_name = __name__.split('.')[0]
-        addon_prefs = bpy.context.preferences.addons[module_name].preferences
+        addon_prefs = bpy.context.preferences.addons[__package__].preferences
         rotate_snap = addon_prefs.rotate_snap
 
         #PI/4=0.78539816339

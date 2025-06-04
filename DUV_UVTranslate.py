@@ -70,8 +70,7 @@ class DREAMUV_OT_uv_translate(bpy.types.Operator):
             self.bm_orig.faces.ensure_lookup_table()
 
             # Get refrerence to addon preference to get snap and scale setting
-            module_name = __name__.split('.')[0]
-            addon_prefs = bpy.context.preferences.addons[module_name].preferences
+            addon_prefs = bpy.context.preferences.addons[__package__].preferences
             self.do_pixel_snap = addon_prefs.pixel_snap
             self.move_snap = addon_prefs.move_snap
             self.move_snap = 1/self.move_snap
@@ -250,8 +249,7 @@ class DREAMUV_OT_uv_translate_step(bpy.types.Operator):
         bm.faces.ensure_lookup_table()
         uv_layer = bm.loops.layers.uv.active
 
-        module_name = __name__.split('.')[0]
-        addon_prefs = bpy.context.preferences.addons[module_name].preferences
+        addon_prefs = bpy.context.preferences.addons[__package__].preferences
         move_snap = addon_prefs.move_snap
 
         xmove = 0

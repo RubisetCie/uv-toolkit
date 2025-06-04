@@ -1,15 +1,6 @@
 #this script is dedicated to the public domain under CC0 (https://creativecommons.org/publicdomain/zero/1.0/)
 #do whatever you want with it!
 
-bl_info = {
-    "name": "UV Toolkit",
-    "category": "UV",
-    "author": "Bram Eulaers",
-    "description": "Edit selected faces'UVs directly inside the 3D Viewport.",
-    "blender": (2, 90, 0),
-    "version": (0, 9)
-}
-
 import bpy
 from bpy.props import EnumProperty, BoolProperty, FloatProperty, IntProperty, PointerProperty
 from . import DUV_UVTranslate
@@ -29,31 +20,12 @@ from . import DUV_UVUnwrap
 from . import DUV_UVInset
 from . import DUV_UVTrim
 from . import DUV_ApplyMaterial
+from . import DUV_UVTexelDensity
+from . import DUV_UVSquares
 from . import DUV_UVBoxmap
 
-import importlib
-if 'bpy' in locals():
-    importlib.reload(DUV_UVTranslate)
-    importlib.reload(DUV_UVRotate)
-    importlib.reload(DUV_UVScale)
-    importlib.reload(DUV_UVExtend)
-    importlib.reload(DUV_UVStitch)
-    importlib.reload(DUV_UVTransfer)
-    importlib.reload(DUV_UVCycle)
-    importlib.reload(DUV_UVCopy)
-    importlib.reload(DUV_UVMirror)
-    importlib.reload(DUV_UVMoveToEdge)
-    importlib.reload(DUV_Utils)
-    importlib.reload(DUV_HotSpot)
-    importlib.reload(DUV_UVProject)
-    importlib.reload(DUV_UVUnwrap)
-    importlib.reload(DUV_UVInset)
-    importlib.reload(DUV_UVTrim)
-    importlib.reload(DUV_ApplyMaterial)
-    importlib.reload(DUV_UVBoxmap)
-
 class DUVUVToolsPreferences(bpy.types.AddonPreferences):
-    bl_idname = __name__
+    bl_idname = __package__
 
     pixel_snap : BoolProperty(
         name="UV Pixel Snap",
@@ -76,6 +48,16 @@ class DUVUVToolsPreferences(bpy.types.AddonPreferences):
         description="Rotate Angle Snap Size",
         default=45
     )
+    set_texel_density : FloatProperty(
+        name="Texel Density",
+        description="Pixels per unit length.",
+        default=512.0
+    )
+    set_image_resolution : FloatProperty(
+        name="Texture Resolution",
+        description="Set to zero to fetch the resolution automatically",
+        default=512.0
+    )
 
 # This should get its own py file
 class DREAMUV_PT_uv(bpy.types.Panel):
@@ -89,7 +71,7 @@ class DREAMUV_PT_uv(bpy.types.Panel):
         addon_prefs = prefs()
         layout = self.layout
         box = layout.box()
-        if bpy.context.object.mode != 'EDIT':
+        if context.object.mode != 'EDIT':
             box.enabled = False
 
         col = box.column(align=True)
@@ -127,6 +109,15 @@ class DREAMUV_PT_uv(bpy.types.Panel):
         op.direction = "+Y"
         op = row.operator("view3d.dreamuv_uvscalestep", text="-Y")
         op.direction = "-Y"
+        col.separator()
+
+        row = col.row(align = True)
+        row.operator("view3d.dreamuv_texeldensity", text="Texel Density", icon="TEXTURE")
+        row = row.row(align = True)
+        row.prop(addon_prefs, 'set_texel_density', text="")
+        row = col.row(align = True)
+        row.prop(addon_prefs, 'set_image_resolution', text="Texture Resolution")
+        row = col.row(align = True)
         col.separator()
 
         row = col.row(align = True)
@@ -169,7 +160,7 @@ class DREAMUV_PT_uv(bpy.types.Panel):
         op.direction = "right"
 
         box = layout.box()
-        if bpy.context.object.mode != 'EDIT':
+        if context.object.mode != 'EDIT':
             box.enabled = False
         col = box.column(align=True)
         col.label(text="Unwrapping Tools:")
@@ -180,7 +171,7 @@ class DREAMUV_PT_uv(bpy.types.Panel):
 
         col.separator()
         box = layout.box()
-        if bpy.context.object.mode != 'EDIT':
+        if context.object.mode != 'EDIT':
             box.enabled = False
         col = box.column(align=True)
         col.label(text="UV Transfer Tool:")
@@ -198,13 +189,13 @@ class DREAMUV_PT_uv(bpy.types.Panel):
         box = layout.box()
         col = box.column(align=True)
         col.label(text="Hot-Spot Tool:")
-        
+
         #row.label(text="Atlas Object:")
         #row.prop_search(context.scene, "subrect_atlas", context.scene, "objects", text="", icon="MOD_MULTIRES")
         #row = col.row(align = True)
-        
+
         col.separator()
-        
+
         radiobutton = (
             context.scene.duv_hotspot_atlas1,
             context.scene.duv_hotspot_atlas1,
@@ -216,11 +207,10 @@ class DREAMUV_PT_uv(bpy.types.Panel):
             context.scene.duv_hotspot_atlas7,
             context.scene.duv_hotspot_atlas8,
         )
-        
+
         listsize = 1
-        col.prop(context.scene, "atlas_list_size", text="atlas count:")
-        
-        
+        col.prop(context.scene, "atlas_list_size", text="Atlas Count:")
+
         while listsize <= context.scene.atlas_list_size:
             row = col.row(align = True)      
             #row.prop(context.scene, "duv_hotspot_atlas1", icon="IPO_SINE", text="")
@@ -232,7 +222,7 @@ class DREAMUV_PT_uv(bpy.types.Panel):
             row.prop_search(context.scene, "subrect_atlas"+str(listsize), context.scene, "objects", text="", icon="MOD_MULTIRES")
             row.prop_search(context.scene, "duv_hotspotmaterial"+str(listsize), bpy.data, "materials", text="")
             listsize += 1
-                
+
         col.separator()
         row = col.row(align = True)
         row.label(text="Atlas Scale:")
@@ -240,7 +230,7 @@ class DREAMUV_PT_uv(bpy.types.Panel):
         row = col.row(align = True)
         #row.label(text="Hotspot material:")
         #row.prop_search(context.scene, "duv_hotspotmaterial", bpy.data, "materials", text="")
-        
+
         row = col.row(align = True)
         row.prop(context.scene, "duv_hotspotuseinset", icon="FULLSCREEN_EXIT", text="Inset")
         row.separator()
@@ -260,7 +250,7 @@ class DREAMUV_PT_uv(bpy.types.Panel):
         #trim
         col.separator()
         box = layout.box()
-        if bpy.context.object.mode != 'EDIT':
+        if context.object.mode != 'EDIT':
             box.enabled = False
         col = box.column(align=True)
         col.label(text="Trim Tool:")
@@ -315,6 +305,31 @@ class DREAMUV_PT_uv(bpy.types.Panel):
         row.prop(context.scene, "duv_boxmap_uv1", icon="IPO_SINE", text="")
         row.prop(context.scene, "duv_boxmap_uv2", icon="IPO_QUAD", text="")
 
+        #squares
+        col.separator()
+        box = layout.box()
+        col = box.column(align=True)
+        col.label(text="UV Squares:")
+        row = col.row(align = True)
+        row.label(text="Select Sequenced Vertices to:")
+        split = col.split()
+        col = split.column(align=True)
+        col.operator("uv.uv_snap_to_axis", text="Snap to Axis (X or Y)", icon="ARROW_LEFTRIGHT")
+        col.operator("uv.uv_snap_to_axis_and_equal", text="Snap with Equal Distance", icon="THREE_DOTS")
+
+        row = col.row(align = True)
+        row.label(text="Convert 4-corner faces to:")
+        split = col.split()
+        col = split.column(align=True)
+        col.operator("uv.uv_squares_by_shape", text="Grid by Shape", icon="UV_FACESEL")
+        col.operator("uv.uv_squares", text="Square Grid", icon="GRID")
+
+        row = col.row(align = True)
+        row.label(text="Additional Tools:")
+        col = col.column(align=True)
+        col.operator("uv.uv_face_join", text="Join to Closest Unselected", icon="SNAP_GRID")
+        col.operator("uv.uv_face_rip", text="Rip UV Faces", icon="UV_SYNC_SELECT")
+
         col.separator()
         box = layout.box()
         col = box.column(align=True)
@@ -326,9 +341,9 @@ class DREAMUV_PT_uv(bpy.types.Panel):
         op = row.operator("view3d.dreamuv_uvcopy", text="Copy UV2->1", icon="XRAY")
         op.reverse = True
 
-        if bpy.context.object.type == 'MESH':
-            me = bpy.context.object.data
-            #me = bpy.context.object.mesh
+        if context.object.type == 'MESH':
+            me = context.object.data
+            #me = context.object.mesh
 
             row = col.row()
             col = row.column()
@@ -339,7 +354,7 @@ class DREAMUV_PT_uv(bpy.types.Panel):
             col.operator("mesh.uv_texture_remove", icon='REMOVE', text="")
 
 def prefs():
-    return bpy.context.preferences.addons[__name__].preferences
+    return bpy.context.preferences.addons[__package__].preferences
 
 classes = (
     DUVUVToolsPreferences,
@@ -370,10 +385,26 @@ classes = (
     DUV_UVTrim.DREAMUV_OT_uv_capnext,
     DUV_ApplyMaterial.DREAMUV_OT_apply_material,
     DUV_UVBoxmap.DREAMUV_OT_uv_boxmap,
+    DUV_UVSquares.DREAMUV_OT_uv_squares,
+    DUV_UVSquares.DREAMUV_OT_uv_squares_by_shape,
+    DUV_UVSquares.DREAMUV_OT_uv_rip_faces,
+    DUV_UVSquares.DREAMUV_OT_uv_join_faces,
+    DUV_UVSquares.DREAMUV_OT_uv_snap_to_axis,
+    DUV_UVSquares.DREAMUV_OT_uv_snap_to_axis_with_equal,
+    DUV_UVTexelDensity.DREAMUV_OT_texel_density
 )
 
 def poll_material(self, material):
     return not material.is_grease_pencil
+
+def menu_func_uv_squares(self, context):
+    self.layout.operator("uv.uv_squares", text="To Square Grid")
+
+def menu_func_uv_squares_by_shape(self, context):
+    self.layout.operator("uv.uv_squares_by_shape", text="Grid by Shape")
+
+def menu_func_face_join(self, context):
+    self.layout.operator("uv.uv_face_join", text="Join to Closest Unselected")
 
 def register():
     for cls in classes:
@@ -413,7 +444,12 @@ def register():
     bpy.types.Scene.duv_uvtrim_bounds = bpy.props.BoolProperty (name = "duv_uvtrim_bounds",default = False,description = "Scale trim to boundary region")
     bpy.types.Scene.duv_uvtrim_min = bpy.props.FloatProperty (name = "duv_uvtrim_min",default = 0.0,description = "Boundary start")
     bpy.types.Scene.duv_uvtrim_max = bpy.props.FloatProperty (name = "duv_uvtrim_max",default = 1.0,description = "Boundary end")
-    
+
+    # Append to IMAGE_EDITOR > UV menu
+    bpy.types.IMAGE_MT_uvs.append(menu_func_uv_squares)
+    bpy.types.IMAGE_MT_uvs.append(menu_func_uv_squares_by_shape)
+    bpy.types.IMAGE_MT_uvs.append(menu_func_face_join)
+
     bpy.types.Scene.subrect_atlas1 = bpy.props.PointerProperty (name="atlas1",type=bpy.types.Object,description="atlas1")
     bpy.types.Scene.subrect_atlas2 = bpy.props.PointerProperty (name="atlas2",type=bpy.types.Object,description="atlas2")
     bpy.types.Scene.subrect_atlas3 = bpy.props.PointerProperty (name="atlas3",type=bpy.types.Object,description="atlas3")
@@ -431,7 +467,7 @@ def register():
     bpy.types.Scene.duv_hotspotmaterial6 = bpy.props.PointerProperty (name="duv_hotspotmaterial6",type=bpy.types.Material,poll=poll_material,description="Hotspot material 6")
     bpy.types.Scene.duv_hotspotmaterial7 = bpy.props.PointerProperty (name="duv_hotspotmaterial7",type=bpy.types.Material,poll=poll_material,description="Hotspot material 7")
     bpy.types.Scene.duv_hotspotmaterial8 = bpy.props.PointerProperty (name="duv_hotspotmaterial8",type=bpy.types.Material,poll=poll_material,description="Hotspot material 8")
-    
+
     bpy.types.Scene.duv_hotspot_atlas1 = bpy.props.BoolProperty (name = "duv_hotspot_atlas1",default = True,description = "duv_hotspot_atlas1")
     bpy.types.Scene.duv_hotspot_atlas2 = bpy.props.BoolProperty (name = "duv_hotspot_atlas2",default = False,description = "duv_hotspot_atlas2")
     bpy.types.Scene.duv_hotspot_atlas3 = bpy.props.BoolProperty (name = "duv_hotspot_atlas3",default = False,description = "duv_hotspot_atlas3")
@@ -440,7 +476,7 @@ def register():
     bpy.types.Scene.duv_hotspot_atlas6 = bpy.props.BoolProperty (name = "duv_hotspot_atlas6",default = False,description = "duv_hotspot_atlas6")
     bpy.types.Scene.duv_hotspot_atlas7 = bpy.props.BoolProperty (name = "duv_hotspot_atlas7",default = False,description = "duv_hotspot_atlas7")
     bpy.types.Scene.duv_hotspot_atlas8 = bpy.props.BoolProperty (name = "duv_hotspot_atlas8",default = False,description = "duv_hotspot_atlas8")
-    
+
     bpy.types.Scene.atlas_list_size = bpy.props.IntProperty (
         name = "atlas_list_size",
         default = 1,
@@ -452,6 +488,11 @@ def register():
 def unregister():
     for cls in reversed(classes):
         bpy.utils.unregister_class(cls)
+
+    # Remove menu items
+    bpy.types.IMAGE_MT_uvs.remove(menu_func_uv_squares)
+    bpy.types.IMAGE_MT_uvs.remove(menu_func_uv_squares_by_shape)
+    bpy.types.IMAGE_MT_uvs.remove(menu_func_face_join)
 
 if __name__ == "__main__":
     register()
