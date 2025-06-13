@@ -65,7 +65,7 @@ class DREAMUV_PT_uv(bpy.types.Panel):
     bl_label = "UV Toolkit"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
-    bl_category = 'Tool'
+    bl_category = 'Edit'
 
     def draw(self, context):
         addon_prefs = prefs()
